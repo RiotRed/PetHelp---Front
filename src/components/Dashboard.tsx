@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="container">
         <div className="card">
-          <h2>📊 Dashboard</h2>
+          <h2>Dashboard</h2>
           <p>Cargando datos...</p>
         </div>
       </div>

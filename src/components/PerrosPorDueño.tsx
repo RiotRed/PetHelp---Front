@@ -16,54 +16,32 @@ const PerrosPorDueño: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [usuariosData, razasData, perrosData] = await Promise.all([
+      const [usuariosData, razasData] = await Promise.all([
         UsuarioService.getAll(),
         RazaService.getAll(),
-        PerroService.getAll(),
       ]);
       setUsuarios(usuariosData);
       setRazas(razasData);
-      console.log('Perros cargados:', perrosData);
     } catch (error) {
       console.error('Error loading data:', error);
     }
   };
 
-    const handleUsuarioChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const usuarioid = e.target.value;
-    setSelectedUsuario(usuarioid);
-    
-    if (usuarioid) {
+  const handleUsuarioChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const usuarioidSeleccionado = e.target.value;
+    setSelectedUsuario(usuarioidSeleccionado);
+
+    if (usuarioidSeleccionado) {
       setLoading(true);
-      
       try {
-        // Hacer llamada a la API para obtener todos los perros
         const allPerrosFromAPI = await PerroService.getAll();
-        console.log('Perros obtenidos de la API:', allPerrosFromAPI);
-        console.log('Usuario seleccionado ID:', usuarioid);
-        
-        // Filtrar perros que pertenecen al usuario seleccionado
+        const usuarioIdNumerico = parseInt(usuarioidSeleccionado);
+
         const perrosDelUsuario = allPerrosFromAPI.filter(perro => {
-          console.log(`Perro ${perro.nombre}: usuarioid = ${perro.usuarioid}, tipo = ${typeof perro.usuarioid}`);
-          
-          // Verificar que el perro tenga un usuarioid válido y que coincida con el usuario seleccionado
-          const perroTieneDueño = perro.usuarioid !== null && perro.usuarioid !== undefined && perro.usuarioid > 0;
-          const esDelUsuario = perro.usuarioid === parseInt(usuarioid);
-          
-          console.log(`Perro ${perro.nombre}: tiene dueño = ${perroTieneDueño}, es del usuario = ${esDelUsuario}`);
-          return perroTieneDueño && esDelUsuario;
+          if (perro.usuarioid === null) return false;
+          return perro.usuarioid === usuarioIdNumerico;
         });
-        
-        console.log('Perros del usuario encontrados:', perrosDelUsuario);
-        
-        // Mostrar información de debugging
-        console.log('=== RESUMEN DE DEBUGGING ===');
-        console.log(`Usuario seleccionado ID: ${usuarioid}`);
-        console.log(`Total de perros en la API: ${allPerrosFromAPI.length}`);
-        console.log(`Perros con dueño (usuarioid > 0): ${allPerrosFromAPI.filter(p => p.usuarioid && p.usuarioid > 0).length}`);
-        console.log(`Perros sin dueño (usuarioid null/0): ${allPerrosFromAPI.filter(p => !p.usuarioid || p.usuarioid === 0).length}`);
-        console.log(`Perros encontrados para este usuario: ${perrosDelUsuario.length}`);
-        
+
         setPerros(perrosDelUsuario);
       } catch (error) {
         console.error('Error al obtener perros:', error);
@@ -213,4 +191,4 @@ const PerrosPorDueño: React.FC = () => {
   );
 };
 
-export default PerrosPorDueño; 
+export default PerrosPorDueño;

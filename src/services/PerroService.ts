@@ -12,7 +12,7 @@ export interface Perro {
   edad: number;
   vacunado: boolean;
   esterilizado: boolean;
-  usuarioid?: number;
+  usuarioid?: number | null;
   direccion: string;
   distrito?: string;
   raza?: string;

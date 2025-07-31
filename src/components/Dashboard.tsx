@@ -5,14 +5,17 @@ import { useAuth } from '../contexts/AuthContext.tsx';
 import { PerroService, Perro } from '../services/PerroService.ts';
 import { RazaService, Raza } from '../services/RazaService.ts';
 import { DistritoService, Distrito } from '../services/DistritoService.ts';
+import { UsuarioService, Usuario } from '../services/UsuarioService.ts';
+import IncidenteForm from './IncidenteForm.tsx';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [perros, setPerros] = useState<Perro[]>([]);
   const [razas, setRazas] = useState<Raza[]>([]);
   const [distritos, setDistritos] = useState<Distrito[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPerroForm, setShowPerroForm] = useState(false);
   const [perroForm, setPerroForm] = useState({
@@ -27,6 +30,7 @@ const Dashboard: React.FC = () => {
     vacunado: false,
     esterilizado: false,
     direccion: '',
+    usuarioid: null as number | null,
   });
 
   useEffect(() => {
@@ -36,14 +40,16 @@ const Dashboard: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [perrosData, razasData, distritosData] = await Promise.all([
+      const [perrosData, razasData, distritosData, usuariosData] = await Promise.all([
         PerroService.getAll(),
         RazaService.getAll(),
         DistritoService.getAll(),
+        UsuarioService.getAll(),
       ]);
       setPerros(perrosData);
       setRazas(razasData);
       setDistritos(distritosData);
+      setUsuarios(usuariosData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -62,7 +68,8 @@ const Dashboard: React.FC = () => {
     try {
       const newPerro: Perro = {
         ...perroForm,
-        usuarioid: user?.id,
+        // Asegurar que usuarioid sea null si no se selecciona un dueño
+        usuarioid: perroForm.usuarioid && perroForm.usuarioid > 0 ? perroForm.usuarioid : null,
       };
       await PerroService.create(newPerro);
       setShowPerroForm(false);
@@ -78,6 +85,7 @@ const Dashboard: React.FC = () => {
         vacunado: false,
         esterilizado: false,
         direccion: '',
+        usuarioid: null as number | null,
       });
       loadData();
     } catch (error) {
@@ -89,15 +97,18 @@ const Dashboard: React.FC = () => {
     const { name, value, type } = e.target;
     setPerroForm({
       ...perroForm,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+               name === 'usuarioid' ? (value === '' ? null : parseInt(value)) : value,
     });
   };
+
+
 
   if (loading) {
     return (
       <div className="container">
         <div className="card">
-          <h2>Dashboard</h2>
+          <h2>📊 Dashboard</h2>
           <p>Cargando datos...</p>
         </div>
       </div>
@@ -108,6 +119,12 @@ const Dashboard: React.FC = () => {
   const porRaza = perros.reduce((acc, perro) => {
     const raza = razas.find(r => r.id === perro.razaid)?.nombre || 'Sin raza';
     acc[raza] = (acc[raza] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const porDistrito = perros.reduce((acc, perro) => {
+    const distrito = distritos.find(d => d.id === perro.distritoid)?.nombre || 'Sin distrito';
+    acc[distrito] = (acc[distrito] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
@@ -127,100 +144,46 @@ const Dashboard: React.FC = () => {
     return acc;
   }, {} as Record<string, number>);
 
+
+
   return (
     <div className="container">
       <div className="card">
-        <h2>📊 Dashboard General</h2>
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '30px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '15px',
+          padding: '30px',
+          color: 'white',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        }}>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: 'bold', 
+            margin: '0',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            🐕 PetHelp Dashboard
+          </h1>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            margin: '10px 0 0 0',
+            opacity: '0.9'
+          }}>
+            Estadísticas y gestión de mascotas
+          </p>
+        </div>
         
-        <div className="stats-grid">
-          <div className="stats-card">
-            <div className="stats-number">{perros.length}</div>
-            <div className="stats-label">Total de Perros</div>
-          </div>
-          <div className="stats-card">
-            <div className="stats-number">{razas.length}</div>
-            <div className="stats-label">Razas Registradas</div>
-          </div>
-          <div className="stats-card">
-            <div className="stats-number">{distritos.length}</div>
-            <div className="stats-label">Distritos</div>
-          </div>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stats-card">
-            <h3>Perros por Raza</h3>
-            <div className="chart-container">
-              <Pie
-                data={{
-                  labels: Object.keys(porRaza),
-                  datasets: [{
-                    data: Object.values(porRaza),
-                    backgroundColor: ['#51cf66', '#ffa726', '#ff6b6b', '#667eea', '#ffd600', '#00bcd4'],
-                  }]
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="stats-card">
-            <h3>Categorías de Edad</h3>
-            <div className="chart-container">
-              <Bar
-                data={{
-                  labels: Object.keys(porEdad),
-                  datasets: [{
-                    label: 'Cantidad',
-                    data: Object.values(porEdad),
-                    backgroundColor: '#667eea',
-                  }]
-                }}
-                options={{ plugins: { legend: { display: false } } }}
-              />
-            </div>
-          </div>
-
-          <div className="stats-card">
-            <h3>Perros por Tamaño</h3>
-            <div className="chart-container">
-              <Bar
-                data={{
-                  labels: Object.keys(porTamaño),
-                  datasets: [{
-                    label: 'Cantidad',
-                    data: Object.values(porTamaño),
-                    backgroundColor: '#51cf66',
-                  }]
-                }}
-                options={{ plugins: { legend: { display: false } } }}
-              />
-            </div>
-          </div>
-
-          <div className="stats-card">
-            <h3>Perros por Género</h3>
-            <div className="chart-container">
-              <Pie
-                data={{
-                  labels: Object.keys(porGenero),
-                  datasets: [{
-                    data: Object.values(porGenero),
-                    backgroundColor: ['#ff6b6b', '#667eea'],
-                  }]
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
         {isAuthenticated && (
-          <div className="card">
+          <div className="card" style={{ marginBottom: '30px' }}>
             <h3>🐕 Registrar Nuevo Perro</h3>
             <button 
               className="btn btn-secondary" 
               onClick={() => setShowPerroForm(!showPerroForm)}
+              style={{ fontSize: '1.1rem', padding: '12px 24px' }}
             >
-              {showPerroForm ? 'Cancelar' : 'Registrar Perro'}
+              {showPerroForm ? '❌ Cancelar' : '➕ Registrar Perro'}
             </button>
 
             {showPerroForm && (
@@ -267,6 +230,23 @@ const Dashboard: React.FC = () => {
                       {distritos.map(distrito => (
                         <option key={distrito.id} value={distrito.id}>
                           {distrito.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Dueño (Opcional)</label>
+                    <select
+                      name="usuarioid"
+                      className="form-input"
+                      value={perroForm.usuarioid || ''}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Sin dueño</option>
+                      {usuarios.map(usuario => (
+                        <option key={usuario.id} value={usuario.id}>
+                          {usuario.nombre} ({usuario.email})
                         </option>
                       ))}
                     </select>
@@ -394,6 +374,106 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         )}
+
+        {isAuthenticated && <IncidenteForm />}
+
+        <div className="stats-grid">
+          <div className="stats-card">
+            <div className="stats-number">{perros.length}</div>
+            <div className="stats-label">Total de Perros</div>
+          </div>
+          <div className="stats-card">
+            <div className="stats-number">{razas.length}</div>
+            <div className="stats-label">Razas Registradas</div>
+          </div>
+          <div className="stats-card">
+            <div className="stats-number">{distritos.length}</div>
+            <div className="stats-label">Distritos</div>
+          </div>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stats-card">
+            <h3>Perros por Raza</h3>
+            <div className="chart-container">
+              <Pie
+                data={{
+                  labels: Object.keys(porRaza),
+                  datasets: [{
+                    data: Object.values(porRaza),
+                    backgroundColor: ['#51cf66', '#ffa726', '#ff6b6b', '#667eea', '#ffd600', '#00bcd4'],
+                  }]
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="stats-card">
+            <h3>Perros por Distrito</h3>
+            <div className="chart-container">
+              <Pie
+                data={{
+                  labels: Object.keys(porDistrito),
+                  datasets: [{
+                    data: Object.values(porDistrito),
+                    backgroundColor: ['#ff6b6b', '#51cf66', '#ffa726', '#667eea', '#ffd600', '#00bcd4', '#9c27b0', '#795548'],
+                  }]
+                }}
+              />
+            </div>
+          </div>
+
+
+
+          <div className="stats-card">
+            <h3>Categorías de Edad</h3>
+            <div className="chart-container">
+              <Bar
+                data={{
+                  labels: Object.keys(porEdad),
+                  datasets: [{
+                    label: 'Cantidad',
+                    data: Object.values(porEdad),
+                    backgroundColor: '#667eea',
+                  }]
+                }}
+                options={{ plugins: { legend: { display: false } } }}
+              />
+            </div>
+          </div>
+
+          <div className="stats-card">
+            <h3>Perros por Tamaño</h3>
+            <div className="chart-container">
+              <Bar
+                data={{
+                  labels: Object.keys(porTamaño),
+                  datasets: [{
+                    label: 'Cantidad',
+                    data: Object.values(porTamaño),
+                    backgroundColor: '#51cf66',
+                  }]
+                }}
+                options={{ plugins: { legend: { display: false } } }}
+              />
+            </div>
+          </div>
+
+          <div className="stats-card">
+            <h3>Perros por Género</h3>
+            <div className="chart-container">
+              <Pie
+                data={{
+                  labels: Object.keys(porGenero),
+                  datasets: [{
+                    data: Object.values(porGenero),
+                    backgroundColor: ['#ff6b6b', '#667eea'],
+                  }]
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

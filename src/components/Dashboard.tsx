@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { useAuth } from '../contexts/AuthContext';
-import { PerroService, Perro } from '../services/PerroService';
-import { RazaService, Raza } from '../services/RazaService';
-import { DistritoService, Distrito } from '../services/DistritoService';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { PerroService, Perro } from '../services/PerroService.ts';
+import { RazaService, Raza } from '../services/RazaService.ts';
+import { DistritoService, Distrito } from '../services/DistritoService.ts';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { UsuarioService, Usuario } from '../services/UsuarioService';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { UsuarioService, Usuario } from '../services/UsuarioService.ts';
 
 interface AuthModalProps {
   isOpen: boolean;

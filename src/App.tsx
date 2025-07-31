@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { AuthProvider } from './contexts/AuthContext';
-import Header from './components/Header';
-import Dashboard from './components/Dashboard';
-import AuthModal from './components/AuthModal';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+import Header from './components/Header.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import AuthModal from './components/AuthModal.tsx';
 
 const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);

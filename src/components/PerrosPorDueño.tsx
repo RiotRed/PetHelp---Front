@@ -99,7 +99,7 @@ const PerrosPorDueño: React.FC = () => {
               <option value="">Seleccionar un dueño</option>
               {usuarios.map(usuario => (
                 <option key={usuario.id} value={usuario.id}>
-                  {usuario.nombre} ({usuario.email})
+                  {usuario.nombre} - {usuario.profesion || 'Sin profesión'}
                 </option>
               ))}
             </select>

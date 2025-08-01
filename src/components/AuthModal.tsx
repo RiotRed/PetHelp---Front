@@ -14,6 +14,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
     email: '',
     nombre: '',
     direccion: '',
+    profesion: '',
     password: '',
     confirmPassword: '',
   });
@@ -43,6 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
           email: formData.email,
           nombre: formData.nombre,
           direccion: formData.direccion,
+          profesion: formData.profesion,
           password: formData.password,
           dueño: true,
         };
@@ -114,6 +116,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
                   value={formData.direccion}
                   onChange={handleInputChange}
                   required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Profesión</label>
+                <input
+                  type="text"
+                  name="profesion"
+                  className="form-input"
+                  value={formData.profesion}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Ej: Veterinario, Ingeniero, etc."
                 />
               </div>
             </>

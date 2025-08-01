@@ -128,7 +128,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
                   value={formData.profesion}
                   onChange={handleInputChange}
                   required
-                  placeholder="Ej: Veterinario, Ingeniero, etc."
                 />
               </div>
             </>
